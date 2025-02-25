@@ -46,7 +46,7 @@ def wrap_metadata(metadata, **kwargs):
 
 
 def prepare_opik_uuid(user_datetime: Optional[datetime], user_uuid: Optional[str]):
-    """Opik needs UUIDv7 while Dify uses UUIDv4 for identifier of most
+    """Opik needs UUIDv7 while DoyelAI uses UUIDv4 for identifier of most
     messages and objects. The type-hints of BaseTraceInfo indicates that
     objects start_time and message_id could be null which means we cannot map
     it to a UUIDv7. Given that we have no way to identify that object
@@ -103,7 +103,8 @@ class OpikDataTrace(BaseTraceInstance):
 
         if trace_info.message_id:
             dify_trace_id = trace_info.message_id
-            opik_trace_id = prepare_opik_uuid(trace_info.start_time, dify_trace_id)
+            opik_trace_id = prepare_opik_uuid(
+                trace_info.start_time, dify_trace_id)
 
             trace_data = {
                 "id": opik_trace_id,
@@ -118,7 +119,8 @@ class OpikDataTrace(BaseTraceInstance):
             }
             self.add_trace(trace_data)
 
-            root_span_id = prepare_opik_uuid(trace_info.start_time, trace_info.workflow_run_id)
+            root_span_id = prepare_opik_uuid(
+                trace_info.start_time, trace_info.workflow_run_id)
             span_data = {
                 "id": root_span_id,
                 "parent_span_id": None,
@@ -185,17 +187,21 @@ class OpikDataTrace(BaseTraceInstance):
             status = node_execution.status
             if node_type == "llm":
                 inputs = (
-                    json.loads(node_execution.process_data).get("prompts", {}) if node_execution.process_data else {}
+                    json.loads(node_execution.process_data).get(
+                        "prompts", {}) if node_execution.process_data else {}
                 )
             else:
-                inputs = json.loads(node_execution.inputs) if node_execution.inputs else {}
-            outputs = json.loads(node_execution.outputs) if node_execution.outputs else {}
+                inputs = json.loads(
+                    node_execution.inputs) if node_execution.inputs else {}
+            outputs = json.loads(
+                node_execution.outputs) if node_execution.outputs else {}
             created_at = node_execution.created_at or datetime.now()
             elapsed_time = node_execution.elapsed_time
             finished_at = created_at + timedelta(seconds=elapsed_time)
 
             execution_metadata = (
-                json.loads(node_execution.execution_metadata) if node_execution.execution_metadata else {}
+                json.loads(
+                    node_execution.execution_metadata) if node_execution.execution_metadata else {}
             )
             metadata = execution_metadata.copy()
             metadata.update(
@@ -210,7 +216,8 @@ class OpikDataTrace(BaseTraceInstance):
                 }
             )
 
-            process_data = json.loads(node_execution.process_data) if node_execution.process_data else {}
+            process_data = json.loads(
+                node_execution.process_data) if node_execution.process_data else {}
 
             provider = None
             model = None
@@ -232,8 +239,10 @@ class OpikDataTrace(BaseTraceInstance):
                 try:
                     if outputs.get("usage"):
                         total_tokens = outputs["usage"].get("total_tokens", 0)
-                        prompt_tokens = outputs["usage"].get("prompt_tokens", 0)
-                        completion_tokens = outputs["usage"].get("completion_tokens", 0)
+                        prompt_tokens = outputs["usage"].get(
+                            "prompt_tokens", 0)
+                        completion_tokens = outputs["usage"].get(
+                            "completion_tokens", 0)
                 except Exception:
                     logger.error("Failed to extract usage", exc_info=True)
 
@@ -291,7 +300,8 @@ class OpikDataTrace(BaseTraceInstance):
 
         if message_data.from_end_user_id:
             end_user_data: Optional[EndUser] = (
-                db.session.query(EndUser).filter(EndUser.id == message_data.from_end_user_id).first()
+                db.session.query(EndUser).filter(
+                    EndUser.id == message_data.from_end_user_id).first()
             )
             if end_user_data is not None:
                 end_user_id = end_user_data.session_id

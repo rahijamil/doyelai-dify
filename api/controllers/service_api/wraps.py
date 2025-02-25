@@ -40,7 +40,8 @@ def validate_app_token(view: Optional[Callable] = None, *, fetch_user_arg: Optio
         def decorated_view(*args, **kwargs):
             api_token = validate_and_get_api_token("app")
 
-            app_model = db.session.query(App).filter(App.id == api_token.app_id).first()
+            app_model = db.session.query(App).filter(
+                App.id == api_token.app_id).first()
             if not app_model:
                 raise Forbidden("The app no longer exists.")
 
@@ -50,7 +51,8 @@ def validate_app_token(view: Optional[Callable] = None, *, fetch_user_arg: Optio
             if not app_model.enable_api:
                 raise Forbidden("The app's API service has been disabled.")
 
-            tenant = db.session.query(Tenant).filter(Tenant.id == app_model.tenant_id).first()
+            tenant = db.session.query(Tenant).filter(
+                Tenant.id == app_model.tenant_id).first()
             if tenant is None:
                 raise ValueError("Tenant does not exist.")
             if tenant.status == TenantStatus.ARCHIVE:
@@ -75,7 +77,8 @@ def validate_app_token(view: Optional[Callable] = None, *, fetch_user_arg: Optio
                 if user_id:
                     user_id = str(user_id)
 
-                kwargs["end_user"] = create_or_update_end_user_for_user_id(app_model, user_id)
+                kwargs["end_user"] = create_or_update_end_user_for_user_id(
+                    app_model, user_id)
 
             return view_func(*args, **kwargs)
 
@@ -100,13 +103,17 @@ def cloud_edition_billing_resource_check(resource: str, api_token_type: str):
                 documents_upload_quota = features.documents_upload_quota
 
                 if resource == "members" and 0 < members.limit <= members.size:
-                    raise Forbidden("The number of members has reached the limit of your subscription.")
+                    raise Forbidden(
+                        "The number of members has reached the limit of your subscription.")
                 elif resource == "apps" and 0 < apps.limit <= apps.size:
-                    raise Forbidden("The number of apps has reached the limit of your subscription.")
+                    raise Forbidden(
+                        "The number of apps has reached the limit of your subscription.")
                 elif resource == "vector_space" and 0 < vector_space.limit <= vector_space.size:
-                    raise Forbidden("The capacity of the vector space has reached the limit of your subscription.")
+                    raise Forbidden(
+                        "The capacity of the vector space has reached the limit of your subscription.")
                 elif resource == "documents" and 0 < documents_upload_quota.limit <= documents_upload_quota.size:
-                    raise Forbidden("The number of documents has reached the limit of your subscription.")
+                    raise Forbidden(
+                        "The number of documents has reached the limit of your subscription.")
                 else:
                     return view(*args, **kwargs)
 
@@ -127,7 +134,7 @@ def cloud_edition_billing_knowledge_limit_check(resource: str, api_token_type: s
                 if resource == "add_segment":
                     if features.billing.subscription.plan == "sandbox":
                         raise Forbidden(
-                            "To unlock this feature and elevate your Dify experience, please upgrade to a paid plan."
+                            "To unlock this feature and elevate your DoyelAI experience, please upgrade to a paid plan."
                         )
                 else:
                     return view(*args, **kwargs)
@@ -151,15 +158,18 @@ def validate_dataset_token(view=None):
                 .filter(TenantAccountJoin.role.in_(["owner"]))
                 .filter(Tenant.status == TenantStatus.NORMAL)
                 .one_or_none()
-            )  # TODO: only owner information is required, so only one is returned.
+                # TODO: only owner information is required, so only one is returned.
+            )
             if tenant_account_join:
                 tenant, ta = tenant_account_join
                 account = Account.query.filter_by(id=ta.account_id).first()
                 # Login admin
                 if account:
                     account.current_tenant = tenant
-                    current_app.login_manager._update_request_context_with_user(account)  # type: ignore
-                    user_logged_in.send(current_app._get_current_object(), user=_get_user())  # type: ignore
+                    current_app.login_manager._update_request_context_with_user(
+                        account)  # type: ignore
+                    user_logged_in.send(
+                        current_app._get_current_object(), user=_get_user())  # type: ignore
                 else:
                     raise Unauthorized("Tenant owner account does not exist.")
             else:
@@ -182,7 +192,8 @@ def validate_and_get_api_token(scope: str | None = None):
     """
     auth_header = request.headers.get("Authorization")
     if auth_header is None or " " not in auth_header:
-        raise Unauthorized("Authorization header must be provided and start with 'Bearer'")
+        raise Unauthorized(
+            "Authorization header must be provided and start with 'Bearer'")
 
     auth_scheme, auth_token = auth_header.split(None, 1)
     auth_scheme = auth_scheme.lower()
@@ -197,7 +208,8 @@ def validate_and_get_api_token(scope: str | None = None):
             update(ApiToken)
             .where(
                 ApiToken.token == auth_token,
-                (ApiToken.last_used_at.is_(None) | (ApiToken.last_used_at < cutoff_time)),
+                (ApiToken.last_used_at.is_(None) |
+                 (ApiToken.last_used_at < cutoff_time)),
                 ApiToken.type == scope,
             )
             .values(last_used_at=current_time)
@@ -207,7 +219,8 @@ def validate_and_get_api_token(scope: str | None = None):
         api_token = result.scalar_one_or_none()
 
         if not api_token:
-            stmt = select(ApiToken).where(ApiToken.token == auth_token, ApiToken.type == scope)
+            stmt = select(ApiToken).where(ApiToken.token ==
+                                          auth_token, ApiToken.type == scope)
             api_token = session.scalar(stmt)
             if not api_token:
                 raise Unauthorized("Access token is invalid")

@@ -33,7 +33,8 @@ def get_oauth_providers():
             github_oauth = GitHubOAuth(
                 client_id=dify_config.GITHUB_CLIENT_ID,
                 client_secret=dify_config.GITHUB_CLIENT_SECRET,
-                redirect_uri=dify_config.CONSOLE_API_URL + "/console/api/oauth/authorize/github",
+                redirect_uri=dify_config.CONSOLE_API_URL +
+                "/console/api/oauth/authorize/github",
             )
         if not dify_config.GOOGLE_CLIENT_ID or not dify_config.GOOGLE_CLIENT_SECRET:
             google_oauth = None
@@ -41,7 +42,8 @@ def get_oauth_providers():
             google_oauth = GoogleOAuth(
                 client_id=dify_config.GOOGLE_CLIENT_ID,
                 client_secret=dify_config.GOOGLE_CLIENT_SECRET,
-                redirect_uri=dify_config.CONSOLE_API_URL + "/console/api/oauth/authorize/google",
+                redirect_uri=dify_config.CONSOLE_API_URL +
+                "/console/api/oauth/authorize/google",
             )
 
         OAUTH_PROVIDERS = {"github": github_oauth, "google": google_oauth}
@@ -57,7 +59,8 @@ class OAuthLogin(Resource):
         if not oauth_provider:
             return {"error": "Invalid provider"}, 400
 
-        auth_url = oauth_provider.get_authorization_url(invite_token=invite_token)
+        auth_url = oauth_provider.get_authorization_url(
+            invite_token=invite_token)
         return redirect(auth_url)
 
 
@@ -80,11 +83,13 @@ class OAuthCallback(Resource):
             user_info = oauth_provider.get_user_info(token)
         except requests.exceptions.RequestException as e:
             error_text = e.response.text if e.response else str(e)
-            logging.exception(f"An error occurred during the OAuth process with {provider}: {error_text}")
+            logging.exception(
+                f"An error occurred during the OAuth process with {provider}: {error_text}")
             return {"error": "OAuth process failed"}, 400
 
         if invite_token and RegisterService.is_valid_invite_token(invite_token):
-            invitation = RegisterService._get_invitation_by_token(token=invite_token)
+            invitation = RegisterService._get_invitation_by_token(
+                token=invite_token)
             if invitation:
                 invitation_email = invitation.get("email", None)
                 if invitation_email != user_info.email:
@@ -138,7 +143,8 @@ def _get_account_by_openid_or_email(provider: str, user_info: OAuthUserInfo) -> 
 
     if not account:
         with Session(db.engine) as session:
-            account = session.execute(select(Account).filter_by(email=user_info.email)).scalar_one_or_none()
+            account = session.execute(select(Account).filter_by(
+                email=user_info.email)).scalar_one_or_none()
 
     return account
 
@@ -153,15 +159,17 @@ def _generate_account(provider: str, user_info: OAuthUserInfo):
             if not FeatureService.get_system_features().is_allow_create_workspace:
                 raise WorkSpaceNotAllowedCreateError()
             else:
-                tenant = TenantService.create_tenant(f"{account.name}'s Workspace")
-                TenantService.create_tenant_member(tenant, account, role="owner")
+                tenant = TenantService.create_tenant(
+                    f"{account.name}'s Workspace")
+                TenantService.create_tenant_member(
+                    tenant, account, role="owner")
                 account.current_tenant = tenant
                 tenant_was_created.send(tenant)
 
     if not account:
         if not FeatureService.get_system_features().is_allow_register:
             raise AccountNotFoundError()
-        account_name = user_info.name or "Dify"
+        account_name = user_info.name or "DoyelAI"
         account = RegisterService.register(
             email=user_info.email, name=account_name, password=None, open_id=user_info.id, provider=provider
         )

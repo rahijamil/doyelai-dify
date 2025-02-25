@@ -41,7 +41,8 @@ class TencentVector(BaseVector):
     def __init__(self, collection_name: str, config: TencentConfig):
         super().__init__(collection_name)
         self._client_config = config
-        self._client = VectorDBClient(**self._client_config.to_tencent_params())
+        self._client = VectorDBClient(
+            **self._client_config.to_tencent_params())
         self._db = self._init_database()
 
     def _init_database(self):
@@ -68,7 +69,8 @@ class TencentVector(BaseVector):
     def _create_collection(self, dimension: int) -> None:
         lock_name = "vector_indexing_lock_{}".format(self._collection_name)
         with redis_client.lock(lock_name, timeout=20):
-            collection_exist_cache_key = "vector_indexing_{}".format(self._collection_name)
+            collection_exist_cache_key = "vector_indexing_{}".format(
+                self._collection_name)
             if redis_client.get(collection_exist_cache_key):
                 return
 
@@ -90,7 +92,8 @@ class TencentVector(BaseVector):
                 raise ValueError("unsupported metric_type")
             params = vdb_index.HNSWParams(m=16, efconstruction=200)
             index = vdb_index.Index(
-                vdb_index.FilterIndex(self.field_id, enum.FieldType.String, enum.IndexType.PRIMARY_KEY),
+                vdb_index.FilterIndex(
+                    self.field_id, enum.FieldType.String, enum.IndexType.PRIMARY_KEY),
                 vdb_index.VectorIndex(
                     self.field_vector,
                     dimension,
@@ -98,15 +101,17 @@ class TencentVector(BaseVector):
                     metric_type,
                     params,
                 ),
-                vdb_index.FilterIndex(self.field_text, enum.FieldType.String, enum.IndexType.FILTER),
-                vdb_index.FilterIndex(self.field_metadata, enum.FieldType.String, enum.IndexType.FILTER),
+                vdb_index.FilterIndex(
+                    self.field_text, enum.FieldType.String, enum.IndexType.FILTER),
+                vdb_index.FilterIndex(
+                    self.field_metadata, enum.FieldType.String, enum.IndexType.FILTER),
             )
 
             self._db.create_collection(
                 name=self._collection_name,
                 shard=self._client_config.shard,
                 replicas=self._client_config.replicas,
-                description="Collection for Dify",
+                description="Collection for DoyelAI",
                 index=index,
             )
             redis_client.set(collection_exist_cache_key, 1, ex=3600)
@@ -131,10 +136,12 @@ class TencentVector(BaseVector):
                 metadata=json.dumps(metadata),
             )
             docs.append(doc)
-        self._db.collection(self._collection_name).upsert(docs, self._client_config.timeout)
+        self._db.collection(self._collection_name).upsert(
+            docs, self._client_config.timeout)
 
     def text_exists(self, id: str) -> bool:
-        docs = self._db.collection(self._collection_name).query(document_ids=[id])
+        docs = self._db.collection(
+            self._collection_name).query(document_ids=[id])
         if docs and len(docs) > 0:
             return True
         return False
@@ -145,7 +152,8 @@ class TencentVector(BaseVector):
         self._db.collection(self._collection_name).delete(document_ids=ids)
 
     def delete_by_metadata_field(self, key: str, value: str) -> None:
-        self._db.collection(self._collection_name).delete(filter=Filter(Filter.In(key, [value])))
+        self._db.collection(self._collection_name).delete(
+            filter=Filter(Filter.In(key, [value])))
 
     def search_by_vector(self, query_vector: list[float], **kwargs: Any) -> list[Document]:
         res = self._db.collection(self._collection_name).search(
@@ -173,7 +181,8 @@ class TencentVector(BaseVector):
             score = 1 - result.get("score", 0.0)
             if score > score_threshold:
                 meta["score"] = score
-                doc = Document(page_content=result.get(self.field_text), metadata=meta)
+                doc = Document(page_content=result.get(
+                    self.field_text), metadata=meta)
                 docs.append(doc)
 
         return docs
@@ -189,8 +198,10 @@ class TencentVectorFactory(AbstractVectorFactory):
             collection_name = class_prefix.lower()
         else:
             dataset_id = dataset.id
-            collection_name = Dataset.gen_collection_name_by_id(dataset_id).lower()
-            dataset.index_struct = json.dumps(self.gen_index_struct_dict(VectorType.TENCENT, collection_name))
+            collection_name = Dataset.gen_collection_name_by_id(
+                dataset_id).lower()
+            dataset.index_struct = json.dumps(
+                self.gen_index_struct_dict(VectorType.TENCENT, collection_name))
 
         return TencentVector(
             collection_name=collection_name,

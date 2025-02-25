@@ -51,7 +51,8 @@ class BasedGenerateTaskPipeline:
         elif isinstance(e, InvokeError | ValueError):
             err = e
         else:
-            err = Exception(e.description if getattr(e, "description", None) is not None else str(e))
+            err = Exception(e.description if getattr(
+                e, "description", None) is not None else str(e))
 
         if not message_id or not session:
             return err
@@ -74,7 +75,7 @@ class BasedGenerateTaskPipeline:
         """
         if isinstance(e, QuotaExceededError):
             return (
-                "Your quota for Dify Hosted Model Provider has been exhausted. "
+                "Your quota for DoyelAI Hosted Model Provider has been exhausted. "
                 "Please go to Settings -> Model Provider to complete your own provider credentials."
             )
 
@@ -111,7 +112,8 @@ class BasedGenerateTaskPipeline:
             return OutputModeration(
                 tenant_id=app_config.tenant_id,
                 app_id=app_config.app_id,
-                rule=ModerationRule(type=sensitive_word_avoidance.type, config=sensitive_word_avoidance.config),
+                rule=ModerationRule(
+                    type=sensitive_word_avoidance.type, config=sensitive_word_avoidance.config),
                 queue_manager=self._queue_manager,
             )
         return None

@@ -76,17 +76,22 @@ class VikingDBVector(BaseVector):
 
             if not self._has_collection():
                 fields = [
-                    Field(field_name=vdb_Field.PRIMARY_KEY.value, field_type=FieldType.String, is_primary_key=True),
-                    Field(field_name=vdb_Field.METADATA_KEY.value, field_type=FieldType.String),
-                    Field(field_name=vdb_Field.GROUP_KEY.value, field_type=FieldType.String),
-                    Field(field_name=vdb_Field.CONTENT_KEY.value, field_type=FieldType.Text),
-                    Field(field_name=vdb_Field.VECTOR.value, field_type=FieldType.Vector, dim=dimension),
+                    Field(field_name=vdb_Field.PRIMARY_KEY.value,
+                          field_type=FieldType.String, is_primary_key=True),
+                    Field(field_name=vdb_Field.METADATA_KEY.value,
+                          field_type=FieldType.String),
+                    Field(field_name=vdb_Field.GROUP_KEY.value,
+                          field_type=FieldType.String),
+                    Field(field_name=vdb_Field.CONTENT_KEY.value,
+                          field_type=FieldType.Text),
+                    Field(field_name=vdb_Field.VECTOR.value,
+                          field_type=FieldType.Vector, dim=dimension),
                 ]
 
                 self._client.create_collection(
                     collection_name=self._collection_name,
                     fields=fields,
-                    description="Collection For Dify",
+                    description="Collection For DoyelAI",
                 )
 
             if not self._has_index():
@@ -101,7 +106,7 @@ class VikingDBVector(BaseVector):
                     index_name=self._index_name,
                     vector_index=vector_index,
                     partition_by=vdb_Field.GROUP_KEY.value,
-                    description="Index For Dify",
+                    description="Index For DoyelAI",
                 )
             redis_client.set(collection_exist_cache_key, 1, ex=3600)
 
@@ -126,7 +131,8 @@ class VikingDBVector(BaseVector):
             # FIXME: fix the type of metadata later
             doc = Data(
                 {
-                    vdb_Field.PRIMARY_KEY.value: metadatas[i]["doc_id"],  # type: ignore
+                    # type: ignore
+                    vdb_Field.PRIMARY_KEY.value: metadatas[i]["doc_id"],
                     vdb_Field.VECTOR.value: embeddings[i] if embeddings else None,
                     vdb_Field.CONTENT_KEY.value: page_content,
                     vdb_Field.METADATA_KEY.value: json.dumps(metadata),
@@ -138,7 +144,8 @@ class VikingDBVector(BaseVector):
         self._client.get_collection(self._collection_name).upsert_data(docs)
 
     def text_exists(self, id: str) -> bool:
-        docs = self._client.get_collection(self._collection_name).fetch_data(id)
+        docs = self._client.get_collection(
+            self._collection_name).fetch_data(id)
         not_exists_str = "data does not exist"
         if docs is not None and not_exists_str not in docs.fields.get("message", ""):
             return True
@@ -151,7 +158,8 @@ class VikingDBVector(BaseVector):
         # Note: Metadata field value is an dict, but vikingdb field
         # not support json type
         results = self._client.get_index(self._collection_name, self._index_name).search(
-            filter={"op": "must", "field": vdb_Field.GROUP_KEY.value, "conds": [self._group_id]},
+            filter={"op": "must", "field": vdb_Field.GROUP_KEY.value,
+                    "conds": [self._group_id]},
             # max value is 5000
             limit=5000,
         )
@@ -190,9 +198,11 @@ class VikingDBVector(BaseVector):
                 metadata = json.loads(metadata)
             if result.score > score_threshold:
                 metadata["score"] = result.score
-                doc = Document(page_content=result.fields.get(vdb_Field.CONTENT_KEY.value), metadata=metadata)
+                doc = Document(page_content=result.fields.get(
+                    vdb_Field.CONTENT_KEY.value), metadata=metadata)
                 docs.append(doc)
-        docs = sorted(docs, key=lambda x: x.metadata.get("score", 0) if x.metadata else 0, reverse=True)
+        docs = sorted(docs, key=lambda x: x.metadata.get(
+            "score", 0) if x.metadata else 0, reverse=True)
         return docs
 
     def search_by_full_text(self, query: str, **kwargs: Any) -> list[Document]:
@@ -212,8 +222,10 @@ class VikingDBVectorFactory(AbstractVectorFactory):
             collection_name = class_prefix.lower()
         else:
             dataset_id = dataset.id
-            collection_name = Dataset.gen_collection_name_by_id(dataset_id).lower()
-            dataset.index_struct = json.dumps(self.gen_index_struct_dict(VectorType.VIKINGDB, collection_name))
+            collection_name = Dataset.gen_collection_name_by_id(
+                dataset_id).lower()
+            dataset.index_struct = json.dumps(
+                self.gen_index_struct_dict(VectorType.VIKINGDB, collection_name))
 
         if dify_config.VIKINGDB_ACCESS_KEY is None:
             raise ValueError("VIKINGDB_ACCESS_KEY should not be None")

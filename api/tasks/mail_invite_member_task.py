@@ -25,7 +25,8 @@ def send_invite_member_mail_task(language: str, to: str, token: str, inviter_nam
         return
 
     logging.info(
-        click.style("Start send invite member mail to {} in workspace {}".format(to, workspace_name), fg="green")
+        click.style("Start send invite member mail to {} in workspace {}".format(
+            to, workspace_name), fg="green")
     )
     start_at = time.perf_counter()
 
@@ -40,7 +41,7 @@ def send_invite_member_mail_task(language: str, to: str, token: str, inviter_nam
                 workspace_name=workspace_name,
                 url=url,
             )
-            mail.send(to=to, subject="立即加入 Dify 工作空间", html=html_content)
+            mail.send(to=to, subject="立即加入 DoyelAI 工作空间", html=html_content)
         else:
             html_content = render_template(
                 "invite_member_mail_template_en-US.html",
@@ -49,7 +50,8 @@ def send_invite_member_mail_task(language: str, to: str, token: str, inviter_nam
                 workspace_name=workspace_name,
                 url=url,
             )
-            mail.send(to=to, subject="Join Dify Workspace Now", html=html_content)
+            mail.send(to=to, subject="Join DoyelAI Workspace Now",
+                      html=html_content)
 
         end_at = time.perf_counter()
         logging.info(

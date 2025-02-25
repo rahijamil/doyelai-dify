@@ -75,7 +75,8 @@ class BaiduVector(BaseVector):
 
     def add_texts(self, documents: list[Document], embeddings: list[list[float]], **kwargs):
         texts = [doc.page_content for doc in documents]
-        metadatas = [doc.metadata for doc in documents if doc.metadata is not None]
+        metadatas = [
+            doc.metadata for doc in documents if doc.metadata is not None]
         total_count = len(documents)
         batch_size = 1000
 
@@ -84,7 +85,8 @@ class BaiduVector(BaseVector):
         for start in range(0, total_count, batch_size):
             end = min(start + batch_size, total_count)
             rows = []
-            assert len(metadatas) == total_count, "metadatas length should be equal to total_count"
+            assert len(
+                metadatas) == total_count, "metadatas length should be equal to total_count"
             # FIXME do you need this assert?
             for i in range(start, end, 1):
                 row = Row(
@@ -107,7 +109,8 @@ class BaiduVector(BaseVector):
                 break
 
     def text_exists(self, id: str) -> bool:
-        res = self._db.table(self._collection_name).query(primary_key={self.field_id: id})
+        res = self._db.table(self._collection_name).query(
+            primary_key={self.field_id: id})
         if res and res.code == 0:
             return True
         return False
@@ -116,17 +119,21 @@ class BaiduVector(BaseVector):
         if not ids:
             return
         quoted_ids = [f"'{id}'" for id in ids]
-        self._db.table(self._collection_name).delete(filter=f"id IN({', '.join(quoted_ids)})")
+        self._db.table(self._collection_name).delete(
+            filter=f"id IN({', '.join(quoted_ids)})")
 
     def delete_by_metadata_field(self, key: str, value: str) -> None:
-        self._db.table(self._collection_name).delete(filter=f"{key} = '{value}'")
+        self._db.table(self._collection_name).delete(
+            filter=f"{key} = '{value}'")
 
     def search_by_vector(self, query_vector: list[float], **kwargs: Any) -> list[Document]:
-        query_vector = [float(val) if isinstance(val, np.float64) else val for val in query_vector]
+        query_vector = [float(val) if isinstance(
+            val, np.float64) else val for val in query_vector]
         anns = AnnSearch(
             vector_field=self.field_vector,
             vector_floats=query_vector,
-            params=HNSWSearchParams(ef=kwargs.get("ef", 10), limit=kwargs.get("top_k", 4)),
+            params=HNSWSearchParams(ef=kwargs.get(
+                "ef", 10), limit=kwargs.get("top_k", 4)),
         )
         res = self._db.table(self._collection_name).search(
             anns=anns,
@@ -150,7 +157,8 @@ class BaiduVector(BaseVector):
             score = row.get("score", 0.0)
             if score > score_threshold:
                 meta["score"] = score
-                doc = Document(page_content=row_data.get(self.field_text), metadata=meta)
+                doc = Document(page_content=row_data.get(
+                    self.field_text), metadata=meta)
                 docs.append(doc)
 
         return docs
@@ -165,7 +173,8 @@ class BaiduVector(BaseVector):
                 raise
 
     def _init_client(self, config) -> MochowClient:
-        config = Configuration(credentials=BceCredentials(config.account, config.api_key), endpoint=config.endpoint)
+        config = Configuration(credentials=BceCredentials(
+            config.account, config.api_key), endpoint=config.endpoint)
         client = MochowClient(config)
         return client
 
@@ -180,7 +189,8 @@ class BaiduVector(BaseVector):
             return self._client.database(self._client_config.database)
         else:
             try:
-                self._client.create_database(database_name=self._client_config.database)
+                self._client.create_database(
+                    database_name=self._client_config.database)
             except ServerError as e:
                 if e.code == ServerErrCode.DB_ALREADY_EXIST:
                     pass
@@ -196,7 +206,8 @@ class BaiduVector(BaseVector):
         # Try to grab distributed lock and create table
         lock_name = "vector_indexing_lock_{}".format(self._collection_name)
         with redis_client.lock(lock_name, timeout=60):
-            table_exist_cache_key = "vector_indexing_{}".format(self._collection_name)
+            table_exist_cache_key = "vector_indexing_{}".format(
+                self._collection_name)
             if redis_client.get(table_exist_cache_key):
                 return
 
@@ -231,11 +242,14 @@ class BaiduVector(BaseVector):
                     not_null=True,
                 )
             )
-            fields.append(Field(self.field_metadata, FieldType.STRING, not_null=True))
+            fields.append(Field(self.field_metadata,
+                          FieldType.STRING, not_null=True))
             fields.append(Field(self.field_app_id, FieldType.STRING))
             fields.append(Field(self.field_annotation_id, FieldType.STRING))
-            fields.append(Field(self.field_text, FieldType.TEXT, not_null=True))
-            fields.append(Field(self.field_vector, FieldType.FLOAT_VECTOR, not_null=True, dimension=dimension))
+            fields.append(
+                Field(self.field_text, FieldType.TEXT, not_null=True))
+            fields.append(Field(
+                self.field_vector, FieldType.FLOAT_VECTOR, not_null=True, dimension=dimension))
 
             # Construct vector index params
             indexes = []
@@ -255,7 +269,7 @@ class BaiduVector(BaseVector):
                 replication=self._client_config.replicas,
                 partition=Partition(partition_num=self._client_config.shard),
                 schema=Schema(fields=fields, indexes=indexes),
-                description="Table for Dify",
+                description="Table for DoyelAI",
             )
 
             # Wait for table created
@@ -274,8 +288,10 @@ class BaiduVectorFactory(AbstractVectorFactory):
             collection_name = class_prefix.lower()
         else:
             dataset_id = dataset.id
-            collection_name = Dataset.gen_collection_name_by_id(dataset_id).lower()
-            dataset.index_struct = json.dumps(self.gen_index_struct_dict(VectorType.BAIDU, collection_name))
+            collection_name = Dataset.gen_collection_name_by_id(
+                dataset_id).lower()
+            dataset.index_struct = json.dumps(
+                self.gen_index_struct_dict(VectorType.BAIDU, collection_name))
 
         return BaiduVector(
             collection_name=collection_name,

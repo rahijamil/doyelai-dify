@@ -48,7 +48,8 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
 
     def _run(self) -> NodeRunResult:
         # extract variables
-        variable = self.graph_runtime_state.variable_pool.get(self.node_data.query_variable_selector)
+        variable = self.graph_runtime_state.variable_pool.get(
+            self.node_data.query_variable_selector)
         if not isinstance(variable, StringSegment):
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
@@ -63,7 +64,8 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
             )
         # retrieve knowledge
         try:
-            results = self._fetch_dataset_retriever(node_data=self.node_data, query=query)
+            results = self._fetch_dataset_retriever(
+                node_data=self.node_data, query=query)
             outputs = {"result": results}
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.SUCCEEDED, inputs=variables, process_data=None, outputs=outputs
@@ -92,7 +94,8 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
 
         # Subquery: Count the number of available documents for each dataset
         subquery = (
-            db.session.query(Document.dataset_id, func.count(Document.id).label("available_document_count"))
+            db.session.query(Document.dataset_id, func.count(
+                Document.id).label("available_document_count"))
             .filter(
                 Document.indexing_status == "completed",
                 Document.enabled == True,
@@ -193,8 +196,10 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
                 weights=weights,
                 reranking_enable=node_data.multiple_retrieval_config.reranking_enable,
             )
-        dify_documents = [item for item in all_documents if item.provider == "dify"]
-        external_documents = [item for item in all_documents if item.provider == "external"]
+        dify_documents = [
+            item for item in all_documents if item.provider == "dify"]
+        external_documents = [
+            item for item in all_documents if item.provider == "external"]
         retrieval_resource_list = []
         # deal with external documents
         for item in external_documents:
@@ -214,11 +219,13 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
             retrieval_resource_list.append(source)
         # deal with dify documents
         if dify_documents:
-            records = RetrievalService.format_retrieval_documents(dify_documents)
+            records = RetrievalService.format_retrieval_documents(
+                dify_documents)
             if records:
                 for record in records:
                     segment = record.segment
-                    dataset = Dataset.query.filter_by(id=segment.dataset_id).first()
+                    dataset = Dataset.query.filter_by(
+                        id=segment.dataset_id).first()
                     document = Document.query.filter(
                         Document.id == segment.document_id,
                         Document.enabled == True,
@@ -251,7 +258,8 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
         if retrieval_resource_list:
             retrieval_resource_list = sorted(
                 retrieval_resource_list,
-                key=lambda x: x["metadata"]["score"] if x["metadata"].get("score") is not None else 0.0,
+                key=lambda x: x["metadata"]["score"] if x["metadata"].get(
+                    "score") is not None else 0.0,
                 reverse=True,
             )
             for position, item in enumerate(retrieval_resource_list, start=1):
@@ -274,7 +282,8 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
         :return:
         """
         variable_mapping = {}
-        variable_mapping[node_id + ".query"] = node_data.query_variable_selector
+        variable_mapping[node_id +
+                         ".query"] = node_data.query_variable_selector
         return variable_mapping
 
     def _fetch_model_config(
@@ -310,11 +319,14 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
             raise ModelNotExistError(f"Model {model_name} not exist.")
 
         if provider_model.status == ModelStatus.NO_CONFIGURE:
-            raise ModelCredentialsNotInitializedError(f"Model {model_name} credentials is not initialized.")
+            raise ModelCredentialsNotInitializedError(
+                f"Model {model_name} credentials is not initialized.")
         elif provider_model.status == ModelStatus.NO_PERMISSION:
-            raise ModelNotSupportedError(f"Dify Hosted OpenAI {model_name} currently not support.")
+            raise ModelNotSupportedError(
+                f"DoyelAI Hosted OpenAI {model_name} currently not support.")
         elif provider_model.status == ModelStatus.QUOTA_EXCEEDED:
-            raise ModelQuotaExceededError(f"Model provider {provider_name} quota exceeded.")
+            raise ModelQuotaExceededError(
+                f"Model provider {provider_name} quota exceeded.")
 
         # model config
         completion_params = node_data.single_retrieval_config.model.completion_params
@@ -328,7 +340,8 @@ class KnowledgeRetrievalNode(BaseNode[KnowledgeRetrievalNodeData]):
         if not model_mode:
             raise ModelNotExistError("LLM mode is required.")
 
-        model_schema = model_type_instance.get_model_schema(model_name, model_credentials)
+        model_schema = model_type_instance.get_model_schema(
+            model_name, model_credentials)
 
         if not model_schema:
             raise ModelNotExistError(f"Model {model_name} not exist.")

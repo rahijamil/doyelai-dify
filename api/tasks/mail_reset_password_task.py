@@ -19,17 +19,21 @@ def send_reset_password_mail_task(language: str, to: str, code: str):
     if not mail.is_inited():
         return
 
-    logging.info(click.style("Start password reset mail to {}".format(to), fg="green"))
+    logging.info(click.style(
+        "Start password reset mail to {}".format(to), fg="green"))
     start_at = time.perf_counter()
 
     # send reset password mail using different languages
     try:
         if language == "zh-Hans":
-            html_content = render_template("reset_password_mail_template_zh-CN.html", to=to, code=code)
-            mail.send(to=to, subject="设置您的 Dify 密码", html=html_content)
+            html_content = render_template(
+                "reset_password_mail_template_zh-CN.html", to=to, code=code)
+            mail.send(to=to, subject="设置您的 DoyelAI 密码", html=html_content)
         else:
-            html_content = render_template("reset_password_mail_template_en-US.html", to=to, code=code)
-            mail.send(to=to, subject="Set Your Dify Password", html=html_content)
+            html_content = render_template(
+                "reset_password_mail_template_en-US.html", to=to, code=code)
+            mail.send(to=to, subject="Set Your DoyelAI Password",
+                      html=html_content)
 
         end_at = time.perf_counter()
         logging.info(

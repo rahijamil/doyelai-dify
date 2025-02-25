@@ -488,8 +488,8 @@ const translation = {
   about: {
     changeLog: '変更ログ',
     updateNow: '今すぐ更新',
-    nowAvailable: 'Dify {{version}} が利用可能です。',
-    latestAvailable: 'Dify {{version}} が最新バージョンです。',
+    nowAvailable: 'DoyelAI {{version}} が利用可能です。',
+    latestAvailable: 'DoyelAI {{version}} が最新バージョンです。',
   },
   appMenus: {
     overview: '監視',

@@ -18,7 +18,8 @@ def send_deletion_success_task(to):
     if not mail.is_inited():
         return
 
-    logging.info(click.style(f"Start send account deletion success email to {to}", fg="green"))
+    logging.info(click.style(
+        f"Start send account deletion success email to {to}", fg="green"))
     start_at = time.perf_counter()
 
     try:
@@ -27,7 +28,8 @@ def send_deletion_success_task(to):
             to=to,
             email=to,
         )
-        mail.send(to=to, subject="Your Dify.AI Account Has Been Successfully Deleted", html=html_content)
+        mail.send(
+            to=to, subject="Your DoyelAI.AI Account Has Been Successfully Deleted", html=html_content)
 
         end_at = time.perf_counter()
         logging.info(
@@ -36,7 +38,8 @@ def send_deletion_success_task(to):
             )
         )
     except Exception:
-        logging.exception("Send account deletion success email to {} failed".format(to))
+        logging.exception(
+            "Send account deletion success email to {} failed".format(to))
 
 
 @shared_task(queue="mail")
@@ -50,12 +53,15 @@ def send_account_deletion_verification_code(to, code):
     if not mail.is_inited():
         return
 
-    logging.info(click.style(f"Start send account deletion verification code email to {to}", fg="green"))
+    logging.info(click.style(
+        f"Start send account deletion verification code email to {to}", fg="green"))
     start_at = time.perf_counter()
 
     try:
-        html_content = render_template("delete_account_code_email_template_en-US.html", to=to, code=code)
-        mail.send(to=to, subject="Dify.AI Account Deletion and Verification", html=html_content)
+        html_content = render_template(
+            "delete_account_code_email_template_en-US.html", to=to, code=code)
+        mail.send(
+            to=to, subject="DoyelAI.AI Account Deletion and Verification", html=html_content)
 
         end_at = time.perf_counter()
         logging.info(
@@ -67,4 +73,5 @@ def send_account_deletion_verification_code(to, code):
             )
         )
     except Exception:
-        logging.exception("Send account deletion verification code email to {} failed".format(to))
+        logging.exception(
+            "Send account deletion verification code email to {} failed".format(to))

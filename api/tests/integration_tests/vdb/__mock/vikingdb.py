@@ -33,20 +33,26 @@ class MockVikingDBClass:
         proxy=None,
     ):
         self._viking_db_service = MagicMock()
-        self._viking_db_service.get_exception = MagicMock(return_value='{"data": {"primary_key": "test_id"}}')
+        self._viking_db_service.get_exception = MagicMock(
+            return_value='{"data": {"primary_key": "test_id"}}')
 
     def get_collection(self, collection_name) -> Collection:
         return Collection(
             collection_name=collection_name,
-            description="Collection For Dify",
+            description="Collection For DoyelAI",
             viking_db_service=self._viking_db_service,
             primary_key=vdb_Field.PRIMARY_KEY.value,
             fields=[
-                Field(field_name=vdb_Field.PRIMARY_KEY.value, field_type=FieldType.String, is_primary_key=True),
-                Field(field_name=vdb_Field.METADATA_KEY.value, field_type=FieldType.String),
-                Field(field_name=vdb_Field.GROUP_KEY.value, field_type=FieldType.String),
-                Field(field_name=vdb_Field.CONTENT_KEY.value, field_type=FieldType.Text),
-                Field(field_name=vdb_Field.VECTOR.value, field_type=FieldType.Vector, dim=768),
+                Field(field_name=vdb_Field.PRIMARY_KEY.value,
+                      field_type=FieldType.String, is_primary_key=True),
+                Field(field_name=vdb_Field.METADATA_KEY.value,
+                      field_type=FieldType.String),
+                Field(field_name=vdb_Field.GROUP_KEY.value,
+                      field_type=FieldType.String),
+                Field(field_name=vdb_Field.CONTENT_KEY.value,
+                      field_type=FieldType.Text),
+                Field(field_name=vdb_Field.VECTOR.value,
+                      field_type=FieldType.Vector, dim=768),
             ],
             indexes=[
                 Index(
@@ -196,17 +202,28 @@ MOCK = os.getenv("MOCK_SWITCH", "false").lower() == "true"
 @pytest.fixture
 def setup_vikingdb_mock(monkeypatch: MonkeyPatch):
     if MOCK:
-        monkeypatch.setattr(VikingDBService, "__init__", MockVikingDBClass.__init__)
-        monkeypatch.setattr(VikingDBService, "get_collection", MockVikingDBClass.get_collection)
-        monkeypatch.setattr(VikingDBService, "create_collection", MockVikingDBClass.create_collection)
-        monkeypatch.setattr(VikingDBService, "drop_collection", MockVikingDBClass.drop_collection)
-        monkeypatch.setattr(VikingDBService, "get_index", MockVikingDBClass.get_index)
-        monkeypatch.setattr(VikingDBService, "create_index", MockVikingDBClass.create_index)
-        monkeypatch.setattr(VikingDBService, "drop_index", MockVikingDBClass.drop_index)
-        monkeypatch.setattr(Collection, "upsert_data", MockVikingDBClass.upsert_data)
-        monkeypatch.setattr(Collection, "fetch_data", MockVikingDBClass.fetch_data)
-        monkeypatch.setattr(Collection, "delete_data", MockVikingDBClass.delete_data)
-        monkeypatch.setattr(Index, "search_by_vector", MockVikingDBClass.search_by_vector)
+        monkeypatch.setattr(VikingDBService, "__init__",
+                            MockVikingDBClass.__init__)
+        monkeypatch.setattr(VikingDBService, "get_collection",
+                            MockVikingDBClass.get_collection)
+        monkeypatch.setattr(VikingDBService, "create_collection",
+                            MockVikingDBClass.create_collection)
+        monkeypatch.setattr(VikingDBService, "drop_collection",
+                            MockVikingDBClass.drop_collection)
+        monkeypatch.setattr(VikingDBService, "get_index",
+                            MockVikingDBClass.get_index)
+        monkeypatch.setattr(VikingDBService, "create_index",
+                            MockVikingDBClass.create_index)
+        monkeypatch.setattr(VikingDBService, "drop_index",
+                            MockVikingDBClass.drop_index)
+        monkeypatch.setattr(Collection, "upsert_data",
+                            MockVikingDBClass.upsert_data)
+        monkeypatch.setattr(Collection, "fetch_data",
+                            MockVikingDBClass.fetch_data)
+        monkeypatch.setattr(Collection, "delete_data",
+                            MockVikingDBClass.delete_data)
+        monkeypatch.setattr(Index, "search_by_vector",
+                            MockVikingDBClass.search_by_vector)
         monkeypatch.setattr(Index, "search", MockVikingDBClass.search)
 
     yield

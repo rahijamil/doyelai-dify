@@ -108,7 +108,8 @@ class ChatClient(DifyClient):
         return self._send_request("POST", f"/chat-messages/{task_id}/stop", data)
 
     def get_conversations(self, user, last_id=None, limit=None, pinned=None):
-        params = {"user": user, "last_id": last_id, "limit": limit, "pinned": pinned}
+        params = {"user": user, "last_id": last_id,
+                  "limit": limit, "pinned": pinned}
         return self._send_request("GET", "/conversations", params=params)
 
     def get_conversation_messages(
@@ -169,8 +170,8 @@ class KnowledgeBaseClient(DifyClient):
         Construct a KnowledgeBaseClient object.
 
         Args:
-            api_key (str): API key of Dify.
-            base_url (str, optional): Base URL of Dify API. Defaults to 'https://api.dify.ai/v1'.
+            api_key (str): API key of DoyelAI.
+            base_url (str, optional): Base URL of DoyelAI API. Defaults to 'https://api.dify.ai/v1'.
             dataset_id (str, optional): ID of the dataset. Defaults to None. You don't need this if you just want to
                 create a new dataset. or list datasets. otherwise you need to set this.
         """

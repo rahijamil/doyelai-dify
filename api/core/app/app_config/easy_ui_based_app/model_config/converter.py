@@ -39,7 +39,8 @@ class ModelConfigConverter:
         )
 
         if model_credentials is None:
-            raise ProviderTokenNotInitError(f"Model {model_name} credentials is not initialized.")
+            raise ProviderTokenNotInitError(
+                f"Model {model_name} credentials is not initialized.")
 
         # check model
         provider_model = provider_model_bundle.configuration.get_provider_model(
@@ -51,11 +52,14 @@ class ModelConfigConverter:
             raise ValueError(f"Model {model_name} not exist.")
 
         if provider_model.status == ModelStatus.NO_CONFIGURE:
-            raise ProviderTokenNotInitError(f"Model {model_name} credentials is not initialized.")
+            raise ProviderTokenNotInitError(
+                f"Model {model_name} credentials is not initialized.")
         elif provider_model.status == ModelStatus.NO_PERMISSION:
-            raise ModelCurrentlyNotSupportError(f"Dify Hosted OpenAI {model_name} currently not support.")
+            raise ModelCurrentlyNotSupportError(
+                f"DoyelAI Hosted OpenAI {model_name} currently not support.")
         elif provider_model.status == ModelStatus.QUOTA_EXCEEDED:
-            raise QuotaExceededError(f"Model provider {provider_name} quota exceeded.")
+            raise QuotaExceededError(
+                f"Model provider {provider_name} quota exceeded.")
 
         # model config
         completion_params = model_config.parameters
@@ -64,14 +68,16 @@ class ModelConfigConverter:
             stop = completion_params["stop"]
             del completion_params["stop"]
 
-        model_schema = model_type_instance.get_model_schema(model_config.model, model_credentials)
+        model_schema = model_type_instance.get_model_schema(
+            model_config.model, model_credentials)
 
         # get model mode
         model_mode = model_config.mode
         if not model_mode:
             model_mode = LLMMode.CHAT.value
             if model_schema and model_schema.model_properties.get(ModelPropertyKey.MODE):
-                model_mode = LLMMode.value_of(model_schema.model_properties[ModelPropertyKey.MODE]).value
+                model_mode = LLMMode.value_of(
+                    model_schema.model_properties[ModelPropertyKey.MODE]).value
 
         if not model_schema:
             raise ValueError(f"Model {model_name} not exist.")

@@ -57,7 +57,8 @@ class MessageCycleManage:
 
         is_first_message = self._application_generate_entity.conversation_id is None
         extras = self._application_generate_entity.extras
-        auto_generate_conversation_name = extras.get("auto_generate_conversation_name", True)
+        auto_generate_conversation_name = extras.get(
+            "auto_generate_conversation_name", True)
 
         if auto_generate_conversation_name and is_first_message:
             # start generate thread
@@ -79,7 +80,8 @@ class MessageCycleManage:
     def _generate_conversation_name_worker(self, flask_app: Flask, conversation_id: str, query: str):
         with flask_app.app_context():
             # get conversation and message
-            conversation = db.session.query(Conversation).filter(Conversation.id == conversation_id).first()
+            conversation = db.session.query(Conversation).filter(
+                Conversation.id == conversation_id).first()
 
             if not conversation:
                 return
@@ -91,11 +93,13 @@ class MessageCycleManage:
 
                 # generate conversation name
                 try:
-                    name = LLMGenerator.generate_conversation_name(app_model.tenant_id, query)
+                    name = LLMGenerator.generate_conversation_name(
+                        app_model.tenant_id, query)
                     conversation.name = name
                 except Exception as e:
                     if dify_config.DEBUG:
-                        logging.exception(f"generate conversation name failed, conversation_id: {conversation_id}")
+                        logging.exception(
+                            f"generate conversation name failed, conversation_id: {conversation_id}")
                     pass
 
                 db.session.merge(conversation)
@@ -108,12 +112,13 @@ class MessageCycleManage:
         :param event: event
         :return:
         """
-        annotation = AppAnnotationService.get_annotation_by_id(event.message_annotation_id)
+        annotation = AppAnnotationService.get_annotation_by_id(
+            event.message_annotation_id)
         if annotation:
             account = annotation.account
             self._task_state.metadata["annotation_reply"] = {
                 "id": annotation.id,
-                "account": {"id": annotation.account_id, "name": account.name if account else "Dify user"},
+                "account": {"id": annotation.account_id, "name": account.name if account else "DoyelAI user"},
             }
 
             return annotation
@@ -135,7 +140,8 @@ class MessageCycleManage:
         :param event: event
         :return:
         """
-        message_file = db.session.query(MessageFile).filter(MessageFile.id == event.message_file_id).first()
+        message_file = db.session.query(MessageFile).filter(
+            MessageFile.id == event.message_file_id).first()
 
         if message_file and message_file.url is not None:
             # get tool file id
@@ -154,7 +160,8 @@ class MessageCycleManage:
             if message_file.url.startswith("http"):
                 url = message_file.url
             else:
-                url = ToolFileManager.sign_file(tool_file_id=tool_file_id, extension=extension)
+                url = ToolFileManager.sign_file(
+                    tool_file_id=tool_file_id, extension=extension)
 
             return MessageFileStreamResponse(
                 task_id=self._application_generate_entity.task_id,
